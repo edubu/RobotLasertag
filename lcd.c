@@ -32,14 +32,14 @@ void lcd_init(I2C_HandleTypeDef* i2c_handle) {
 	//Entry mode set
 	//I/D=1, increment cursor
 	//S=0, no shifting
-	lcd_transmit_byte(0x06); //Entry mode set --> I/D = 1 (increment cursor) & S = 0 (no shift)
+	lcd_transmit_byte(0x06);
 	HAL_Delay(5);
 
 	//Display control
 	//D=1, display on
 	//C=0, cursor off
 	//B=0, cursor blink off
-	lcd_transmit_byte(0x0C); //Display on/off control --> D = 1, C and B = 0. (Cursor and blink, last two bits)
+	lcd_transmit_byte(0x0C);
 }
 
 void lcd_transmit_byte(uint8_t data) {
