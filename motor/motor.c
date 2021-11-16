@@ -40,9 +40,9 @@ uint32_t speed_to_pulse(uint8_t speed) {
 
 	//ranges from 20% - 50% duty cycle
 	//when 1 <= speed <= 10
-	int pulse = 560 * speed + 2800;
-	pulse = (pulse < 3360) ? 3360 : pulse;
-	pulse = (pulse > 8400) ? 8400 : pulse;
+	uint32_t pulse = 392 * speed + 2800;
+	pulse = (pulse < 3192) ? 3192 : pulse;
+	pulse = (pulse > 6720) ? 6720 : pulse;
 
 	return pulse;
 }
