@@ -20,7 +20,23 @@ typedef struct {
 	float az;
 } IMU_DATA;
 
+typedef struct {
+  I2C_HandleTypeDef   instance;
+  uint16_t            sdaPin;
+  GPIO_TypeDef*       sdaPort;
+  uint16_t            sclPin;
+  GPIO_TypeDef*       sclPort;
+} I2C_Module;
+
+//HAL_Delay error fix
+//run this before any imu stuff (including imu_init)
+void I2C_ClearBusyFlagErratum(I2C_Module* i2c);
+
+//return 1 if error
+//0 if success
 uint8_t imu_init(I2C_HandleTypeDef* i2c_handle);
+
+void imu_calibrate(int16_t x_offset, int16_t y_offset, int16_t z_offset);
 
 void imu_read_accel(IMU_DATA* imu_data);
 
