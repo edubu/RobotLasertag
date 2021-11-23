@@ -1,0 +1,3 @@
+motor_control.c:13:9:omni_init	4	static
+motor_control.c:38:10:getMotorVels	16	static
+motor_control.c:44:6:matrixMult	40	static

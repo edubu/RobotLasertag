@@ -1,0 +1,2 @@
+hand_control.c:11:9:getMagnitude	24	static
+hand_control.c:27:9:getDirection	32	static

@@ -1,0 +1,4 @@
+imu.c:22:6:I2C_ClearBusyFlagErratum	40	static,ignoring_inline_asm
+imu.c:116:9:imu_init	32	static
+imu.c:155:6:imu_calibrate	32	static
+imu.c:168:6:imu_read_accel	40	static
