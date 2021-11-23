@@ -32,6 +32,9 @@ void motor_forward(MOTOR* motor, uint8_t speed);
 //move motor backward at desired speed
 void motor_backward(MOTOR* motor, uint8_t speed);
 
+//move motor, sign of speed determines direction
+void motor_move(MOTOR* motor, int8_t speed);
+
 //stop motor
 void motor_stop(MOTOR* motor);
 

@@ -25,6 +25,17 @@ void motor_backward(MOTOR* motor, uint8_t speed) {
 	set_tim_ccr(motor->htim, motor->tim_channel, speed_to_pulse(speed));
 }
 
+void motor_move(MOTOR* motor, int8_t speed) {
+	if (speed < 0) {
+		speed *= 1;
+		motor_backward(motor, (uint8_t) speed);
+	} else if (speed > 0) {
+		motor_forward(motor, (uint8_t) speed);
+	} else {
+		motor_stop(motor);
+	}
+}
+
 void motor_stop(MOTOR* motor) {
 	set_tim_ccr(motor->htim, motor->tim_channel, 0);
 }
