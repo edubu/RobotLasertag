@@ -68,7 +68,16 @@ static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN 0 */
 IMU_DATA imu;
 
+int8_t button_val = 0;
 uint8_t Rx_data[1];
+
+// Joystick Button Interrupt
+void HAL_GPIO_EXTI_Callback(uint16_t pin) {
+	if (pin == GPIO_PIN_3) {
+		button_val = 1;
+	}
+}
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	HAL_UART_Receive_IT(&huart1, Rx_data, 1);
@@ -95,12 +104,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		int8_t *motor_cmds = getMotorVels(magnitude, direction);
 
 		int8_t buf[5];
-		buf[0] = 0;
+		buf[0] = button_val;
 		buf[1] = motor_cmds[0] + 10;
 		buf[2] = motor_cmds[1] + 10;
 		buf[3] = motor_cmds[2] + 10;
 		buf[4] = motor_cmds[3] + 10;
 
+		button_val = 0;
 		HAL_StatusTypeDef ret = HAL_UART_Transmit(&huart2, (uint8_t*)buf, 5, HAL_MAX_DELAY);
 		ret = HAL_UART_Transmit(&huart1, (uint8_t *)buf, 5, HAL_MAX_DELAY);
 		uint8_t x2 = 10;
