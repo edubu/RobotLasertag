@@ -7,8 +7,10 @@
 C_SRCS += \
 ../Core/Src/hand_control.c \
 ../Core/Src/imu.c \
+../Core/Src/lcd.c \
 ../Core/Src/main.c \
 ../Core/Src/motor_control.c \
+../Core/Src/piezo.c \
 ../Core/Src/stm32f4xx_hal_msp.c \
 ../Core/Src/stm32f4xx_it.c \
 ../Core/Src/syscalls.c \
@@ -18,8 +20,10 @@ C_SRCS += \
 OBJS += \
 ./Core/Src/hand_control.o \
 ./Core/Src/imu.o \
+./Core/Src/lcd.o \
 ./Core/Src/main.o \
 ./Core/Src/motor_control.o \
+./Core/Src/piezo.o \
 ./Core/Src/stm32f4xx_hal_msp.o \
 ./Core/Src/stm32f4xx_it.o \
 ./Core/Src/syscalls.o \
@@ -29,8 +33,10 @@ OBJS += \
 C_DEPS += \
 ./Core/Src/hand_control.d \
 ./Core/Src/imu.d \
+./Core/Src/lcd.d \
 ./Core/Src/main.d \
 ./Core/Src/motor_control.d \
+./Core/Src/piezo.d \
 ./Core/Src/stm32f4xx_hal_msp.d \
 ./Core/Src/stm32f4xx_it.d \
 ./Core/Src/syscalls.d \

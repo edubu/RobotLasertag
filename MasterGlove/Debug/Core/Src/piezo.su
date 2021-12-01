@@ -1,0 +1,9 @@
+piezo.c:12:6:piezo_init	16	static
+piezo.c:16:6:changeFrequency	48	static
+piezo.c:33:6:delay	24	static
+piezo.c:38:6:rest	16	static
+piezo.c:43:6:playNote	24	static
+piezo.c:49:6:playDeathSound	8	static
+piezo.c:58:6:playHitSound	8	static
+piezo.c:67:6:playFireSound	8	static
+piezo.c:73:6:playVictors	8	static
