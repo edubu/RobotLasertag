@@ -48,6 +48,7 @@ I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c3;
 
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim5;
 TIM_HandleTypeDef htim11;
 
 UART_HandleTypeDef huart1;
@@ -66,6 +67,7 @@ static void MX_TIM11_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_I2C3_Init(void);
+static void MX_TIM5_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -74,6 +76,8 @@ static void MX_I2C3_Init(void);
 /* USER CODE BEGIN 0 */
 IMU_DATA imu;
 static char livesRemaining = '3';
+static uint8_t cooldown = 0;
+static uint8_t gameOver = 0;
 
 int8_t button_val = 0;
 uint8_t Rx_data[1];
@@ -119,13 +123,16 @@ void displayGameOver() {
 
 // Joystick Button Interrupt
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
-	if (pin == GPIO_PIN_3) {
+	if (pin == GPIO_PIN_3 && !cooldown && !gameOver) {
 		button_val = 1;
 		playFireSound();
 	}
 	// Blue Button For Testing
 	if (pin == GPIO_PIN_13) {
-		playFireSound();
+		//playVictors();
+		gameOver = 0;
+		livesRemaining = '3';
+		displayLives();
 	}
 }
 
@@ -134,8 +141,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	HAL_UART_Receive_IT(&huart1, Rx_data, 1);
 
 	// HIT ON ROBOT
-	if(Rx_data[0]){
+	if(Rx_data[0] && !gameOver){
 		// What happens when robot gets hit?
+
+		// 0) Set cooldown bit (start TIMER)
+		cooldown = 1;
+		HAL_TIM_Base_Start_IT(&htim5);
 
 		// 1) Change LCD screen to say "HIT"
 		displayHit();
@@ -149,6 +160,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 			// Death sequence
 			displayGameOver();
 			playDeathSound();
+			gameOver = 1;
 		}
 		else {
 			// Display lives remaining
@@ -172,18 +184,32 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 		int8_t *motor_cmds = getMotorVels(magnitude, direction);
 
-		int8_t buf[5];
+		int8_t buf[6];
+
 		buf[0] = button_val;
 		buf[1] = motor_cmds[0] + 10;
 		buf[2] = motor_cmds[1] + 10;
 		buf[3] = motor_cmds[2] + 10;
 		buf[4] = motor_cmds[3] + 10;
+		buf[5] = cooldown;
+
+		if (gameOver) {
+			buf[0] = 0;
+			buf[1] = 10;
+			buf[2] = 10;
+			buf[3] = 10;
+			buf[4] = 10;
+			buf[5] = 1;
+		}
 
 		button_val = 0;
-		HAL_StatusTypeDef ret = HAL_UART_Transmit(&huart2, (uint8_t*)buf, 5, HAL_MAX_DELAY);
-		ret = HAL_UART_Transmit(&huart1, (uint8_t *)buf, 5, HAL_MAX_DELAY);
+		HAL_StatusTypeDef ret = HAL_UART_Transmit(&huart2, (uint8_t*)buf, 6, HAL_MAX_DELAY);
+		ret = HAL_UART_Transmit(&huart1, (uint8_t *)buf, 6, HAL_MAX_DELAY);
 		uint8_t x2 = 10;
 
+	}
+	else if (htim == &htim5) {
+		cooldown = 0;
 	}
 }
 
@@ -223,6 +249,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM2_Init();
   MX_I2C3_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
 //  HAL_NVIC_SetPriority(USART1_IRQN, 0, 0);
 //  HAL_NVIC_EnableIRQ(USART1_IRQN);
@@ -430,6 +457,54 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 2 */
   HAL_TIM_MspPostInit(&htim2);
+
+}
+
+/**
+  * @brief TIM5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM5_Init(void)
+{
+
+  /* USER CODE BEGIN TIM5_Init 0 */
+
+  /* USER CODE END TIM5_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM5_Init 1 */
+
+  /* USER CODE END TIM5_Init 1 */
+  htim5.Instance = TIM5;
+  htim5.Init.Prescaler = 83;
+  htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim5.Init.Period = 1999999;
+  htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_OC_Init(&htim5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_TIMING;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_OC_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM5_Init 2 */
+
+  /* USER CODE END TIM5_Init 2 */
 
 }
 
