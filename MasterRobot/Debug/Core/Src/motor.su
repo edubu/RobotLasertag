@@ -1,0 +1,8 @@
+motor.c:9:6:motor_init	16	static
+motor.c:14:6:motor_forward	24	static
+motor.c:21:6:motor_backward	24	static
+motor.c:28:6:motor_move	16	static
+motor.c:39:6:motor_stop	16	static
+motor.c:43:6:motor_shutdown	16	static
+motor.c:47:10:speed_to_pulse	24	static
+motor.c:61:6:set_tim_ccr	24	static

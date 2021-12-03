@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "motor.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -75,14 +75,14 @@ void fire() {
 
 	//start TIM2 Channel 1 (38kHz emitter)
 	TIM_OC_InitTypeDef sConfigOC;
-	htim2->Init.Period = 25;
-	HAL_TIM_PWM_Init(htim2);
+	htim2.Init.Period = 25;
+	HAL_TIM_PWM_Init(&htim2);
 
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
 	sConfigOC.Pulse = 13;
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	HAL_TIM_PWM_ConfigChannel(htim2, &sConfigOC, TIM_CHANNEL_1);
+	HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 
 
@@ -110,27 +110,38 @@ MOTOR motor2 = {&htim3, TIM_CHANNEL_2, GPIOB, GPIOB, GPIO_PIN_4, GPIO_PIN_5};
 MOTOR motor3 = {&htim3, TIM_CHANNEL_3, GPIOB, GPIOB, GPIO_PIN_6, GPIO_PIN_7};
 MOTOR motor4 = {&htim3, TIM_CHANNEL_4, GPIOB, GPIOB, GPIO_PIN_8, GPIO_PIN_9};
 
-volatile uint8_t Rx_data[6];
+uint8_t Rx_data[13];
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	HAL_StatusTypeDef ret = HAL_UART_Receive_IT(&huart1, Rx_data, 5);
+	HAL_StatusTypeDef ret = HAL_UART_Receive_IT(&huart1, Rx_data, 6);
+
+	// Send to terminal for debugging
 
 
-	int16_t m1 = Rx_data[1];
-	int16_t m2 = Rx_data[2];
-	int16_t m3 = Rx_data[3];
-	int16_t m4 = Rx_data[4];
+
+	int8_t m1 = Rx_data[1] - 10;
+	int8_t m2 = Rx_data[2] - 10;
+	int8_t m3 = Rx_data[3] - 10;
+	int8_t m4 = Rx_data[4] - 10;
 	cooldown = Rx_data[5];
 
-	motor_move(&motor1, (int8_t)Rx_data[1]);
-	motor_move(&motor2, (int8_t)Rx_data[2]);
-	motor_move(&motor3, (int8_t)Rx_data[3]);
-	motor_move(&motor4, (int8_t)Rx_data[4]);
+	char buf[6];
+	HAL_UART_Transmit(&huart2, (uint8_t*)buf, sprintf(buf, "%d\t", m1), HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart2, (uint8_t*)buf, sprintf(buf, "%d\t", m2), HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart2, (uint8_t*)buf, sprintf(buf, "%d\t", m3), HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart2, (uint8_t*)buf, sprintf(buf, "%d\t", m4), HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart2, (uint8_t*)buf, sprintf(buf, "%d\t", Rx_data[0]), HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart2, (uint8_t*)buf, sprintf(buf, "%d\r\n", cooldown), HAL_MAX_DELAY);
 
-	uint8_t buf[1];
-	buf[0] = hitbit
+	motor_move(&motor1, m1);
+	motor_move(&motor2, m2);
+	motor_move(&motor3, m3);
+	motor_move(&motor4, m4);
+
+	uint8_t buf2[1];
+	buf2[0] = hitBit;
 	//transmit hit bit
-	HAL_StatusTypeDef ret = HAL_UART_Transmit(&huart2, (uint8_t*)buf, 1, HAL_MAX_DELAY);
+	ret = HAL_UART_Transmit(&huart1, (uint8_t*)buf2, 1, HAL_MAX_DELAY);
 
 	// FIRE
 	if(Rx_data[0]){
@@ -176,6 +187,12 @@ int main(void)
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
 
+  motor_init(&motor1);
+  motor_init(&motor2);
+  motor_init(&motor3);
+  motor_init(&motor4);
+
+  HAL_UART_Receive_IT(&huart1, Rx_data, 6);
   /* USER CODE END 2 */
 
   /* Infinite loop */
