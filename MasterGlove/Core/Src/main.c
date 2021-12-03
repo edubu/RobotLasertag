@@ -80,7 +80,7 @@ static uint8_t cooldown = 0;
 static uint8_t gameOver = 0;
 
 int8_t button_val = 0;
-uint8_t Rx_data[1];
+uint8_t Rx_data[4];
 
 // Displays current lives remaining on LCD
 void displayLives() {
@@ -138,7 +138,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	HAL_UART_Receive_IT(&huart1, Rx_data, 1);
+	//HAL_UART_Receive_IT(&huart1, Rx_data, 1);
+
+	// Send to terminal for debugging
+	char buf[2];
+	HAL_UART_Transmit(&huart2, (uint8_t*)buf, sprintf(buf, "%d\r\n", Rx_data[0]), HAL_MAX_DELAY);
 
 	// HIT ON ROBOT
 	if(Rx_data[0] && !gameOver){
@@ -203,8 +207,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		}
 
 		button_val = 0;
-		HAL_StatusTypeDef ret = HAL_UART_Transmit(&huart2, (uint8_t*)buf, 6, HAL_MAX_DELAY);
-		ret = HAL_UART_Transmit(&huart1, (uint8_t *)buf, 6, HAL_MAX_DELAY);
+		//HAL_StatusTypeDef ret = HAL_UART_Transmit(&huart2, (uint8_t*)buf, 6, HAL_MAX_DELAY);
+		HAL_StatusTypeDef ret = HAL_UART_Transmit(&huart1, (uint8_t *)buf, 6, HAL_MAX_DELAY);
 		uint8_t x2 = 10;
 
 	}
@@ -255,7 +259,7 @@ int main(void)
 //  HAL_NVIC_EnableIRQ(USART1_IRQN);
 
   // Start UART Receiving interrupt
-  HAL_UART_Receive_IT(&huart1, Rx_data, 1);
+  //HAL_UART_Receive_IT(&huart1, Rx_data, 1);
 
   I2C_Module i2c_mod;
   i2c_mod.instance = hi2c1;
@@ -524,11 +528,11 @@ static void MX_TIM11_Init(void)
 
   /* USER CODE END TIM11_Init 1 */
   htim11.Instance = TIM11;
-  htim11.Init.Prescaler = 419;
+  htim11.Init.Prescaler = 839;
   htim11.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim11.Init.Period = 10000;
   htim11.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim11.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim11.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim11) != HAL_OK)
   {
     Error_Handler();

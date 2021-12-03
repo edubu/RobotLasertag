@@ -14,8 +14,8 @@ uint8_t omni_init(){
 
 	// Wheel 1 -- front left
 	params[0] = 0;
-	params[1] = 1;
-	params[2] = -1;
+	params[1] = -1;
+	params[2] = 1;
 
 	// Wheel 2 -- front right
 	params[3] = 0;
@@ -24,8 +24,8 @@ uint8_t omni_init(){
 
 	// Wheel 3 -- back right
 	params[6] = 0;
-	params[7] = 1;
-	params[8] = -1;
+	params[7] = -1;
+	params[8] = 1;
 
 	// Wheel 4 -- back left
 	params[9] = 0;

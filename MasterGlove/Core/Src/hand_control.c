@@ -28,8 +28,16 @@ float * getDirection(int16_t x, int16_t y){
 	static float direction[2];
 	float magnitude = sqrt(pow(x, 2) + pow(y, 2));
 
-	direction[0] = x/magnitude;
-	direction[1] = y/magnitude;
+	direction[0] = -x/magnitude;
+	direction[1] = -y/magnitude;
+
+//	if(abs(direction[0]) <= 0.1){
+//		direction[0] = 0;
+//	}
+//
+//	if(abs(direction[1]) <= 0.1){
+//		direction[1] = 0;
+//	}
 
 	return direction;
 }
