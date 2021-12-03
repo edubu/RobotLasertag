@@ -26,6 +26,7 @@
 #include "hand_control.h"
 #include "piezo.h"
 #include "lcd.h"
+#include "joystick.h"
 
 /* USER CODE END Includes */
 
@@ -44,6 +45,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+ADC_HandleTypeDef hadc1;
+
 I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c3;
 
@@ -68,6 +71,7 @@ static void MX_USART1_UART_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_I2C3_Init(void);
 static void MX_TIM5_Init(void);
+static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -123,7 +127,7 @@ void displayGameOver() {
 
 // Joystick Button Interrupt
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
-	if (pin == GPIO_PIN_3 && !cooldown && !gameOver) {
+	if (pin == GPIO_PIN_6 && !cooldown && !gameOver) {
 		button_val = 1;
 		playFireSound();
 	}
@@ -196,6 +200,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		buf[3] = motor_cmds[2] + 10;
 		buf[4] = motor_cmds[3] + 10;
 		buf[5] = cooldown;
+		buf[6] = get_joystick_position();
 
 		if (gameOver) {
 			buf[0] = 0;
@@ -204,11 +209,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 			buf[3] = 10;
 			buf[4] = 10;
 			buf[5] = 1;
+			buf[6] = 1;
 		}
 
 		button_val = 0;
 		//HAL_StatusTypeDef ret = HAL_UART_Transmit(&huart2, (uint8_t*)buf, 6, HAL_MAX_DELAY);
-		HAL_StatusTypeDef ret = HAL_UART_Transmit(&huart1, (uint8_t *)buf, 6, HAL_MAX_DELAY);
+		HAL_StatusTypeDef ret = HAL_UART_Transmit(&huart1, (uint8_t *)buf, 7, HAL_MAX_DELAY);
 		uint8_t x2 = 10;
 
 	}
@@ -254,6 +260,7 @@ int main(void)
   MX_TIM2_Init();
   MX_I2C3_Init();
   MX_TIM5_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 //  HAL_NVIC_SetPriority(USART1_IRQN, 0, 0);
 //  HAL_NVIC_EnableIRQ(USART1_IRQN);
@@ -281,6 +288,9 @@ int main(void)
 
   // initialize piezo buzzer
   piezo_init(&htim2);
+
+  // initialize joystick
+  joystick_init(&hadc1);
 
   // Start xbee sending timer
   HAL_TIM_Base_Start_IT(&htim11);
@@ -345,6 +355,56 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief ADC1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC1_Init(void)
+{
+
+  /* USER CODE BEGIN ADC1_Init 0 */
+
+  /* USER CODE END ADC1_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC1_Init 1 */
+
+  /* USER CODE END ADC1_Init 1 */
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+  */
+  hadc1.Instance = ADC1;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.ScanConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_1;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC1_Init 2 */
+
+  /* USER CODE END ADC1_Init 2 */
+
 }
 
 /**
@@ -640,7 +700,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PA6 */
+  GPIO_InitStruct.Pin = GPIO_PIN_6;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
   /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 

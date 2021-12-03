@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "motor.h"
+#include "stepper.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,6 +41,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim5;
@@ -59,6 +61,7 @@ static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_TIM5_Init(void);
+static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -100,7 +103,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 	//ir reciever hit
 	if (pin == GPIO_PIN_4 && !cooldown) {
 		// Send "hit" bit to glove
-		hitBit |= 0x1;
+		hitBit = 1;
 	}
 }
 
@@ -113,7 +116,7 @@ MOTOR motor4 = {&htim3, TIM_CHANNEL_4, GPIOB, GPIOB, GPIO_PIN_8, GPIO_PIN_9};
 uint8_t Rx_data[13];
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	HAL_StatusTypeDef ret = HAL_UART_Receive_IT(&huart1, Rx_data, 6);
+	HAL_StatusTypeDef ret = HAL_UART_Receive_IT(&huart1, Rx_data, 7);
 
 	// Send to terminal for debugging
 
@@ -124,19 +127,22 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	int8_t m3 = Rx_data[3] - 10;
 	int8_t m4 = Rx_data[4] - 10;
 	cooldown = Rx_data[5];
+	uint8_t position = Rx_data[6];
 
-	char buf[6];
+	char buf[7];
 	HAL_UART_Transmit(&huart2, (uint8_t*)buf, sprintf(buf, "%d\t", m1), HAL_MAX_DELAY);
 	HAL_UART_Transmit(&huart2, (uint8_t*)buf, sprintf(buf, "%d\t", m2), HAL_MAX_DELAY);
 	HAL_UART_Transmit(&huart2, (uint8_t*)buf, sprintf(buf, "%d\t", m3), HAL_MAX_DELAY);
 	HAL_UART_Transmit(&huart2, (uint8_t*)buf, sprintf(buf, "%d\t", m4), HAL_MAX_DELAY);
 	HAL_UART_Transmit(&huart2, (uint8_t*)buf, sprintf(buf, "%d\t", Rx_data[0]), HAL_MAX_DELAY);
-	HAL_UART_Transmit(&huart2, (uint8_t*)buf, sprintf(buf, "%d\r\n", cooldown), HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart2, (uint8_t*)buf, sprintf(buf, "%d\t", cooldown), HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart2, (uint8_t*)buf, sprintf(buf, "%d\r\n", position), HAL_MAX_DELAY);
 
 	motor_move(&motor1, m1);
 	motor_move(&motor2, m2);
 	motor_move(&motor3, m3);
 	motor_move(&motor4, m4);
+	move_stepper(position);
 
 	uint8_t buf2[1];
 	buf2[0] = hitBit;
@@ -185,6 +191,7 @@ int main(void)
   MX_TIM3_Init();
   MX_USART1_UART_Init();
   MX_TIM5_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
   motor_init(&motor1);
@@ -192,7 +199,9 @@ int main(void)
   motor_init(&motor3);
   motor_init(&motor4);
 
-  HAL_UART_Receive_IT(&huart1, Rx_data, 6);
+  stepper_init(&htim1);
+
+  HAL_UART_Receive_IT(&huart1, Rx_data, 7);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -248,6 +257,70 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 83;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 65535;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_OC_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_TIMING;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_OC_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
+
 }
 
 /**
