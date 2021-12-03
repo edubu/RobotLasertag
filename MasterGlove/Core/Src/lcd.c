@@ -55,7 +55,8 @@ void lcd_transmit_byte(uint8_t data) {
 	buf[2] = data_lower | 0x0C;
 	buf[3] = data_lower | 0x08;
 
-	HAL_I2C_Master_Transmit(hi2c, LCD_I2C_ADDRESS, (uint8_t *) buf, 4, 100);
+	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(hi2c, LCD_I2C_ADDRESS, (uint8_t *) buf, 4, 100);
+
 }
 
 void lcd_set_cursor(uint8_t col, uint8_t row) {

@@ -1,0 +1,2 @@
+joystick.c:10:6:joystick_init	16	static
+joystick.c:15:9:get_joystick_position	16	static

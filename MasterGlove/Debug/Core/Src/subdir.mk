@@ -7,6 +7,7 @@
 C_SRCS += \
 ../Core/Src/hand_control.c \
 ../Core/Src/imu.c \
+../Core/Src/joystick.c \
 ../Core/Src/lcd.c \
 ../Core/Src/main.c \
 ../Core/Src/motor_control.c \
@@ -20,6 +21,7 @@ C_SRCS += \
 OBJS += \
 ./Core/Src/hand_control.o \
 ./Core/Src/imu.o \
+./Core/Src/joystick.o \
 ./Core/Src/lcd.o \
 ./Core/Src/main.o \
 ./Core/Src/motor_control.o \
@@ -33,6 +35,7 @@ OBJS += \
 C_DEPS += \
 ./Core/Src/hand_control.d \
 ./Core/Src/imu.d \
+./Core/Src/joystick.d \
 ./Core/Src/lcd.d \
 ./Core/Src/main.d \
 ./Core/Src/motor_control.d \

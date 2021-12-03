@@ -13,8 +13,10 @@ void joystick_init(ADC_HandleTypeDef* hadc_in) {
 
 // determine which position joystick is in (0-left, 1-middle, 2-right)
 uint8_t get_joystick_position() {
+	HAL_ADC_Start(hadc);
 	HAL_ADC_PollForConversion(hadc, HAL_MAX_DELAY);
 	uint16_t data = HAL_ADC_GetValue(hadc);
+	HAL_ADC_Stop(hadc);
 
 	// Joystick neutral position
 	if (data >= 1500 && data <= 3500) {
