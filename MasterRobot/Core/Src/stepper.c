@@ -6,7 +6,7 @@
  */
 #include "stepper.h"
 
-void stepper_init(TIM_HandleTypeDef htim_in) {
+void stepper_init(TIM_HandleTypeDef *htim_in) {
 	htim = htim_in;
 	HAL_TIM_Base_Start(htim);
 }

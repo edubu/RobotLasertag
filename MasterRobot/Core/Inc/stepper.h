@@ -7,11 +7,11 @@
 
 #include "stm32f4xx_hal.h"
 
-TIM_HandleTypeDef htim;
+TIM_HandleTypeDef *htim;
 
 #define stepsperrev 4096
 
-void stepper_init(TIM_HandleTypeDef htim_in);
+void stepper_init(TIM_HandleTypeDef *htim_in);
 
 void delay (uint16_t us);
 

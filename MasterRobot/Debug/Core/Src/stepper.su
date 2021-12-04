@@ -1,0 +1,6 @@
+stepper.c:9:6:stepper_init	16	static
+stepper.c:14:6:delay	16	static
+stepper.c:20:6:stepper_set_rpm	16	static
+stepper.c:25:6:stepper_half_drive	16	static
+stepper.c:87:6:stepper_stop	8	static
+stepper.c:95:6:move_stepper	24	static

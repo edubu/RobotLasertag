@@ -1,5 +1,5 @@
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o: \
- ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c \
+Core/Src/stepper.o: ../Core/Src/stepper.c \
+ C:/repos/RobotLasertag/MasterRobot/Core/Inc/stepper.h \
  C:/repos/RobotLasertag/MasterRobot/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  C:/repos/RobotLasertag/MasterRobot/Core/Inc/stm32f4xx_hal_conf.h \
  C:/repos/RobotLasertag/MasterRobot/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
@@ -28,6 +28,8 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.o: \
  C:/repos/RobotLasertag/MasterRobot/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  C:/repos/RobotLasertag/MasterRobot/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  C:/repos/RobotLasertag/MasterRobot/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
+
+C:/repos/RobotLasertag/MasterRobot/Core/Inc/stepper.h:
 
 C:/repos/RobotLasertag/MasterRobot/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 
