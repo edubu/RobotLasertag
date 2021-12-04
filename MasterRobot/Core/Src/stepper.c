@@ -98,14 +98,14 @@ void move_stepper(uint8_t position) {
 		stepper_stop();
 	}
 	// Joystick left position
-	else if (position == 0) {
+	else if (position == 2) {
 		for (int i = 7; i >= 0; i--) {
 			stepper_half_drive(i);
 			stepper_set_rpm(12);
 		}
 	}
 	// Joystick right position
-	else if (position == 2) {
+	else if (position == 0) {
 		for (int i = 0; i < 8; i++) {
 			stepper_half_drive(i);
 			stepper_set_rpm(12);
